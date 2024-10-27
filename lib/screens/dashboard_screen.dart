@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/practitioner_model.dart';
+import 'booking_screen.dart';
+import 'RevenueScreen.dart';
+import 'BlockedTimeslotScreen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String practitionerId;
@@ -30,7 +33,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _isLoading = true;
     });
 
-    // Fetch practitioner details
     final practitioner =
         await _apiService.getPractitionerDetails(widget.practitionerId);
 
@@ -59,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await _apiService.toggleStatus(widget.practitionerId, status);
     if (!success) {
       setState(() {
-        _isActive = !status; // Revert if update fails
+        _isActive = !status;
       });
       print('Failed to update status.');
     }
@@ -74,93 +76,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background image and overlay
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                    'assets/app_login_bg.PNG'), // Ensure this image path is correct
-                fit: BoxFit.cover,
-              ),
-            ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildHeader(),
+              SizedBox(height: 20),
+              _buildUserCard(),
+              _buildStatusCard(),
+              _buildBookingAndRevenueCards(),
+              SizedBox(height: 20),
+              _buildActionButtons(context),
+            ],
           ),
-          // Opacity overlay for text readability
-          Container(
-            color: Colors.black.withOpacity(0.5),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  SizedBox(height: 20),
-                  _buildUserCard(),
-                  _buildStatusCard(),
-                  _buildBookingAndRevenueCards(),
-                  SizedBox(height: 20),
-                  _buildActionButtons(context),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Center(
-      child: Text(
-        'Practitioner Dashboard',
-        style: TextStyle(
-          fontFamily: 'Lobster',
-          fontSize: 28,
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
+  Widget _buildHeader() {
+    return Text(
+      'Practitioner Dashboard',
+      style: TextStyle(
+        fontFamily: 'Lobster',
+        fontSize: 28,
+        color: Colors.deepPurple,
+        fontWeight: FontWeight.bold,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
   Widget _buildUserCard() {
     return Card(
-      color: Colors.white.withOpacity(0.9),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 6,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 30,
+              radius: 40,
               backgroundImage: AssetImage('assets/user_ico.png'),
             ),
-            SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hi, ${_practitioner?.firstname ?? ''}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'Lobster',
-                    color: Colors.grey[700],
+            SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_practitioner?.firstname ?? ''} ${_practitioner?.lastname ?? ''}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontFamily: 'Poppins',
+                      color: Colors.deepPurple,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  _practitioner?.lastname ?? '',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontFamily: 'Lobster',
-                    color: Colors.blueAccent,
-                    fontWeight: FontWeight.bold,
+                  SizedBox(height: 5),
+                  Text(
+                    'Professional Role: ${_practitioner?.serviceType ?? 'N/A'}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      color: Colors.grey[700],
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Icon(Icons.phone, size: 16, color: Colors.grey[600]),
+                      SizedBox(width: 5),
+                      Text(
+                        '${_practitioner?.mobile ?? 'N/A'}',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Icon(Icons.email, size: 16, color: Colors.grey[600]),
+                      SizedBox(width: 5),
+                      Text(
+                        '${_practitioner?.email ?? 'N/A'}',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -170,8 +178,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatusCard() {
     return Card(
-      color: Colors.blueAccent.withOpacity(0.85),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.tealAccent.withOpacity(0.85),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 4,
       margin: EdgeInsets.only(top: 16),
       child: ListTile(
@@ -179,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'Active Status',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
           ),
@@ -189,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onChanged: (bool value) {
             _toggleActiveStatus(value);
           },
-          activeColor: Colors.greenAccent,
+          activeColor: Colors.green,
         ),
       ),
     );
@@ -199,12 +207,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-              child: _buildInfoCard('Today\'s Booking', '$_todayBookings')),
+          Expanded(child: _buildInfoCard("Today's Booking", '$_todayBookings')),
           SizedBox(width: 10),
           Expanded(
-              child: _buildInfoCard('Today\'s Revenue', '\$$_todayRevenue')),
+              child: _buildInfoCard("Today's Revenue", '\$$_todayRevenue')),
         ],
       ),
     );
@@ -212,7 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildInfoCard(String title, String value) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 4,
       color: Colors.white.withOpacity(0.85),
       child: Padding(
@@ -235,7 +243,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 22,
-                color: Colors.blueAccent,
+                color: Colors.deepPurple,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -285,6 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildButton(context, icon1, text1, onTap: onTap1),
           SizedBox(width: 10),
@@ -302,7 +311,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.deepPurpleAccent.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
                 color: Colors.black12,
@@ -337,17 +346,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Placeholder functions for buttons
   void fetchBookings() {
-    // TODO: Implement API call to fetch bookings
+    if (_practitioner != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              BookingScreen(practitionerId: widget.practitionerId),
+        ),
+      );
+    } else {
+      print("Practitioner information not loaded.");
+    }
   }
 
   void fetchRevenue() {
-    // TODO: Implement API call to fetch revenue details
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            RevenueScreen(practitionerId: widget.practitionerId),
+      ),
+    );
   }
 
   void blockTimeSlot() {
-    // TODO: Implement functionality to block timeslot
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            BlockedTimeslotScreen(practitionerId: widget.practitionerId),
+      ),
+    );
   }
 
   void blockDate() {
