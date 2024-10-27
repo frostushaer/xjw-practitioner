@@ -28,17 +28,69 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Verify if passwords match
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    // Call your sign-up API here, including the auth parameter
+    // Call the sign-up API
+    bool success = await _apiService.signup(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      ccode: '91', // Replace as needed
+      mobile: _mobileController.text,
+      gender: _selectedGender,
+      serviceType: _selectedServiceType,
+      professionalExp: _professionalExpController.text,
+      reference: _referenceController.text,
+      udp: '1', // Replace as needed
+      auth: '123456', // Replace as needed
+    );
 
     setState(() {
       _isLoading = false;
     });
 
-    Navigator.pushReplacementNamed(context, '/dashboard');
+    if (success) {
+      // Show success popup
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Success"),
+            content: Text("Your account has been created successfully!"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the popup
+                  Navigator.pushReplacementNamed(
+                    context,
+                    '/dashboard',
+                    arguments:
+                        _emailController.text, // Pass the email as an argument
+                  );
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Show error if sign-up failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Sign-up failed. Please try again.")),
+      );
+    }
   }
 
   @override
@@ -192,7 +244,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.black, // Black background for input fields
+        fillColor: Colors.black,
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white),

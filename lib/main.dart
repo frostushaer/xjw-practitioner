@@ -23,9 +23,15 @@ class MyApp extends StatelessWidget {
           final String? practitionerId =
               ModalRoute.of(context)?.settings.arguments as String?;
           if (practitionerId == null) {
-            // Handle the case where the practitionerId is null, maybe redirect to login
-            // Optionally, you can show an error message or redirect to login
-            return LoginScreen(); // Redirecting to LoginScreen for safety
+            // Handle the case where the practitionerId is null
+            WidgetsBinding.instance?.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(context, '/login');
+            });
+            return Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
           return DashboardScreen(practitionerId: practitionerId);
         },

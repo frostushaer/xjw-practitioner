@@ -6,7 +6,6 @@ import '../models/booking_model.dart';
 class ApiService {
   static const String _baseUrl = 'https://xjwmobilemassage.com.au/app/api.php';
 
-  // Signup function
   Future<bool> signup({
     required String firstName,
     required String lastName,
@@ -41,6 +40,11 @@ class ApiService {
         },
       );
 
+      if (response.body.isEmpty) {
+        print("Signup Error: Empty response received.");
+        return false;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false;
     } catch (e) {
@@ -49,7 +53,6 @@ class ApiService {
     }
   }
 
-  // Login function
   Future<String?> login({
     required String email,
     required String password,
@@ -64,6 +67,11 @@ class ApiService {
         },
       );
 
+      if (response.body.isEmpty) {
+        print("Login Error: Empty response received.");
+        return null;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false ? data['user']['id'].toString() : null;
     } catch (e) {
@@ -72,7 +80,6 @@ class ApiService {
     }
   }
 
-  // Toggle practitioner status
   Future<bool> toggleStatus(String id, bool status) async {
     try {
       final response = await http.post(
@@ -84,6 +91,11 @@ class ApiService {
         },
       );
 
+      if (response.body.isEmpty) {
+        print("Toggle Status Error: Empty response received.");
+        return false;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false;
     } catch (e) {
@@ -92,13 +104,17 @@ class ApiService {
     }
   }
 
-  // Get practitioner details
   Future<Practitioner?> getPractitionerDetails(String id) async {
     try {
       final response = await http.post(
         Uri.parse(_baseUrl),
         body: {'action': 'get_practitioner_detail_via_id', 'id': id},
       );
+
+      if (response.body.isEmpty) {
+        print("Practitioner Details Error: Empty response received.");
+        return null;
+      }
 
       final data = json.decode(response.body);
       return data['error'] == false
@@ -110,7 +126,6 @@ class ApiService {
     }
   }
 
-  // Get all bookings for a practitioner
   Future<List<Booking>?> getBookings(String practitionerId) async {
     try {
       final response = await http.post(
@@ -120,6 +135,11 @@ class ApiService {
           'practitioner_id': practitionerId
         },
       );
+
+      if (response.body.isEmpty) {
+        print("Bookings Error: Empty response received.");
+        return null;
+      }
 
       final data = json.decode(response.body);
       return data['error'] == false
@@ -133,7 +153,6 @@ class ApiService {
     }
   }
 
-  // Update booking status
   Future<bool> updateBookingStatus(int bookingId, String newStatus) async {
     try {
       final response = await http.post(
@@ -145,6 +164,11 @@ class ApiService {
         },
       );
 
+      if (response.body.isEmpty) {
+        print("Update Booking Status Error: Empty response received.");
+        return false;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false;
     } catch (e) {
@@ -153,7 +177,6 @@ class ApiService {
     }
   }
 
-  // Calculate total revenue for a practitioner
   Future<double?> getTotalRevenue(String practitionerId) async {
     try {
       final response = await http.post(
@@ -163,6 +186,11 @@ class ApiService {
           'practitioner_id': practitionerId
         },
       );
+
+      if (response.body.isEmpty) {
+        print("Revenue Error: Empty response received.");
+        return 0.0;
+      }
 
       final data = json.decode(response.body);
       return data['error'] == false
@@ -174,7 +202,6 @@ class ApiService {
     }
   }
 
-  // Add blocked timeslot
   Future<bool> addBlockedTimeslot(String serviceName, String duration,
       String date, String timeslot, String status, String pid) async {
     try {
@@ -191,6 +218,11 @@ class ApiService {
         },
       );
 
+      if (response.body.isEmpty) {
+        print("Add Blocked Timeslot Error: Empty response received.");
+        return false;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false;
     } catch (e) {
@@ -199,11 +231,15 @@ class ApiService {
     }
   }
 
-  // Get list of service names
   Future<List<String>> getServiceNames() async {
     try {
       final response = await http
           .post(Uri.parse(_baseUrl), body: {'action': 'get_services'});
+
+      if (response.body.isEmpty) {
+        print("Service Names Error: Empty response received.");
+        return [];
+      }
 
       final data = json.decode(response.body);
       return data['error'] == false ? List<String>.from(data['services']) : [];
@@ -213,7 +249,6 @@ class ApiService {
     }
   }
 
-  // Get list of durations
   Future<List<String>> getDurations() async {
     try {
       final response = await http.post(
@@ -221,24 +256,32 @@ class ApiService {
         body: {'action': 'get_durations'},
       );
 
-      final data = json.decode(response.body);
-      if (data['error'] == false) {
-        // Convert to a Set to remove duplicates, then back to List
-        return List<String>.from(Set<String>.from(data['durations']));
-      } else {
-        print('API Error: ${data['message']}');
+      if (response.body.isEmpty) {
+        print("Durations Error: Empty response received.");
+        return [];
       }
+
+      final data = json.decode(response.body);
+      return data['error'] == false
+          ? List<String>.from(Set<String>.from(data['durations']))
+          : [];
     } catch (e) {
       print('Error fetching durations: $e');
+      return [];
     }
-    return [];
   }
 
-  // Get blocked timeslots
   Future<List<Map<String, dynamic>>> getBlockedTimeslots() async {
     try {
-      final response = await http
-          .post(Uri.parse(_baseUrl), body: {'action': 'timeslot_block_list'});
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {'action': 'timeslot_block_list'},
+      );
+
+      if (response.body.isEmpty) {
+        print("Blocked Timeslots Error: Empty response received.");
+        return [];
+      }
 
       final data = json.decode(response.body);
       return data['error'] == false
@@ -250,7 +293,6 @@ class ApiService {
     }
   }
 
-  // Delete a blocked timeslot
   Future<bool> deleteBlockedTimeslot(String id) async {
     try {
       final response = await http.post(
@@ -258,10 +300,110 @@ class ApiService {
         body: {'action': 'delete_blocktimeslot', 'id': id},
       );
 
+      if (response.body.isEmpty) {
+        print("Delete Blocked Timeslot Error: Empty response received.");
+        return false;
+      }
+
       final data = json.decode(response.body);
       return data['error'] == false;
     } catch (e) {
       print('Error deleting blocked timeslot: $e');
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getBlockedDates() async {
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {'action': 'dates_block_list'},
+      );
+
+      if (response.body.isEmpty) {
+        print("Blocked Dates Error: Empty response received.");
+        return [];
+      }
+
+      print("Blocked Dates Response: ${response.body}"); // Debug print
+
+      final data = json.decode(response.body);
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      } else if (data['error'] == false && data['data'] != null) {
+        return List<Map<String, dynamic>>.from(data['data']);
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching blocked dates: $e');
+      return [];
+    }
+  }
+
+  Future<bool> deleteBlockedDate(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {'action': 'delete_blockdates', 'id': id},
+      );
+
+      if (response.body.isEmpty) {
+        print("Delete Blocked Date Error: Empty response received.");
+        return false;
+      }
+
+      final data = json.decode(response.body);
+      return data['error'] == false;
+    } catch (e) {
+      print('Error deleting blocked date: $e');
+      return false;
+    }
+  }
+
+  Future<bool> addBlockedDate(
+      String startDate, String endDate, String status, String pid) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {
+          'action': 'add_block_dates',
+          'start_date': startDate,
+          'end_date': endDate,
+          'status': status,
+          'pid': pid,
+        },
+      );
+
+      if (response.body.isEmpty) {
+        print("Add Blocked Date Error: Empty response received.");
+        return false;
+      }
+
+      final data = json.decode(response.body);
+      return data['error'] == false;
+    } catch (e) {
+      print("Error adding blocked date: $e");
+      return false;
+    }
+  }
+
+  Future<bool> logout() async {
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {'action': 'logout'},
+      );
+
+      if (response.body.isEmpty) {
+        print("Logout Error: Empty response received.");
+        return false;
+      }
+
+      final data = json.decode(response.body);
+      return data['error'] == false;
+    } catch (e) {
+      print("Error logging out: $e");
       return false;
     }
   }

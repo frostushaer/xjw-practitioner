@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../models/practitioner_model.dart';
 import 'booking_screen.dart';
 import 'RevenueScreen.dart';
 import 'BlockedTimeslotScreen.dart';
+import 'BlockedDatesScreen.dart';
+import 'login_screen.dart'; // Import LoginScreen to navigate on logout
 
 class DashboardScreen extends StatefulWidget {
   final String practitionerId;
@@ -150,9 +153,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Icon(Icons.phone, size: 16, color: Colors.grey[600]),
                       SizedBox(width: 5),
-                      Text(
-                        '${_practitioner?.mobile ?? 'N/A'}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      Expanded(
+                        child: Text(
+                          '${_practitioner?.mobile ?? 'N/A'}',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -161,9 +168,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Icon(Icons.email, size: 16, color: Colors.grey[600]),
                       SizedBox(width: 5),
-                      Text(
-                        '${_practitioner?.email ?? 'N/A'}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      Expanded(
+                        child: Text(
+                          '${_practitioner?.email ?? 'N/A'}',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -295,9 +306,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildButton(context, icon1, text1, onTap: onTap1),
+          Expanded(child: _buildButton(context, icon1, text1, onTap: onTap1)),
           SizedBox(width: 10),
-          _buildButton(context, icon2, text2, onTap: onTap2),
+          Expanded(child: _buildButton(context, icon2, text2, onTap: onTap2)),
         ],
       ),
     );
@@ -305,42 +316,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildButton(BuildContext context, IconData icon, String text,
       {VoidCallback? onTap}) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.deepPurpleAccent.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                offset: Offset(0, 4),
-                blurRadius: 6,
-              ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(vertical: 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.deepPurpleAccent.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              offset: Offset(0, 4),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        padding: EdgeInsets.symmetric(vertical: 15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 28,
+            ),
+            SizedBox(height: 5),
+            Text(
+              text,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
                 color: Colors.white,
-                size: 28,
+                fontWeight: FontWeight.w600,
               ),
-              SizedBox(height: 5),
-              Text(
-                text,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -381,14 +390,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void blockDate() {
-    // TODO: Implement functionality to block date
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            BlockedDatesScreen(practitionerId: widget.practitionerId),
+      ),
+    );
   }
 
   void showNotifications() {
     // TODO: Show notifications
   }
 
-  void logout() {
-    // TODO: Implement logout functionality
+  void logout() async {
+    // Clear session or authentication data
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    // Navigate to LoginScreen and remove all previous routes
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false, // Clears all previous routes
+    );
   }
 }
