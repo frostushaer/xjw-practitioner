@@ -407,4 +407,27 @@ class ApiService {
       return false;
     }
   }
+
+  Future<bool> forgotPassword({required String email}) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        body: {
+          'action': 'forget_password_request_practitioner',
+          'email': email,
+        },
+      );
+
+      if (response.body.isEmpty) {
+        print("Forgot Password Error: Empty response received.");
+        return false;
+      }
+
+      final data = json.decode(response.body);
+      return data['error'] == false;
+    } catch (e) {
+      print("Forgot Password error: $e");
+      return false;
+    }
+  }
 }
